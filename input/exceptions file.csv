@@ -1,0 +1,66 @@
+CountryCode;CityCode;exp;exp discription
+AR;AR01;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR02;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR03;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR04;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR05;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR06;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR07;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR08;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR09;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR10;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR11;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR12;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR13;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+AR;AR14;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+GG;GG01;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+GG;GG02;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+GG;GG03;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+GG;GG04;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+CA;CA05;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+CA;CA06;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+NG;NG01;only2000;has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+BU;BU01;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+BU;BU02;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+BU;BU03;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+BU;BU04;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+BU;BU05;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+BU;BU06;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+BU;BU07;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+GT;GT01;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+GT;GT02;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+GT;GT03;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+GT;GT04;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+KW;KW01;country678;"has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city"
+AJ;AJ01;miss.ind;indicator 2668 missing, it is going to be calculated from indicators 2000, 2667, 2666 (2668=2000-2667-2666)
+AJ;AJ02;miss.ind;indicator 2668 missing, it is going to be calculated from indicators 2000, 2667, 2666 (2668=2000-2667-2666)
+MO;MO01;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO02;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO03;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO04;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO05;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO06;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO07;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO08;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO09;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+MO;MO10;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+PK;PK01;trend2000;"indicator 2000 has longer time series than indicators 2667, 2666, 2668; so indicator 2000 going to be used to calculated the total of the city"
+SA;SA01;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA02;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA03;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA04;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA05;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA06;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA07;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA08;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA09;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA10;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA11;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA12;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+SA;SA13;make678;from indicators 2001, 2002, 2003 and 2000 calculating 2668, 2666, 2667
+PH;PH02;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
+PH;PH03;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
+PH;PH04;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
+PH;PH06;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
+PH;PH08;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
+PH;PH09;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
