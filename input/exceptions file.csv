@@ -64,3 +64,5 @@ PH;PH04;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cov
 PH;PH06;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
 PH;PH08;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
 PH;PH09;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
+IR;IR04;changek;total forecast drops below 0, so we need to change k parameter
+IR;IR07;changek;total forecast drops below 0, so we need to change k parameter
