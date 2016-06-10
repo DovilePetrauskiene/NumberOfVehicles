@@ -84,3 +84,58 @@ missing.ind <- function(veh1, expf){
   
   return(veh1)
 }
+
+country678.cases.founder <- function(veh1, city.codes){
+  
+  country678 <- NULL
+  for (cc in veh1$RegionCode){
+    
+    s <- veh1[veh1$RegionCode==cc & veh1$ProductID %in% c(2000, 2666, 2668, 2667,
+                                                          2001, 2002, 2003),]
+    
+    if (nrow(s)==1){
+      
+      if (s$ProductID==2000){
+        
+        cn.code <- city.codes[city.codes$CityCode==cc,]$CountryCode
+        
+        if (any(c(2666, 2668, 2667) %in% veh1[veh1$RegionCode==cn.code,]$ProductID) ||
+            any(c(2001, 2002, 2003) %in% veh1[veh1$RegionCode==cn.code,]$ProductID)){
+          
+          country678 <- c(country678, cc)
+        }
+      }
+    }
+  }
+  
+  return(country678)
+}
+
+
+trend2000.cases.finder <- function(veh1){
+  
+  trend2000 <- NULL
+  
+  year <- as.character(2000:2016)
+  for (cc in unique(veh1$RegionCode)){
+    
+    s <- veh1[veh1$RegionCode==cc & veh1$ProductID %in% c(2000, 2666, 2667, 2668),]
+    
+    if ((2000 %in% s$ProductID) & nrow(s)==4){
+      
+      tt <- NULL
+      for (j in unique(s$ProductID)){
+        
+        tt <- rbind(c(j,length(s[s$ProductID==j,year][!is.na(s[s$ProductID==j,year])])),tt)
+      }
+      tt <- as.data.frame(tt)
+      
+      if (max(tt$`V2`)==tt[tt$V1==2000,]$V2){
+        
+        trend2000 <- c(cc, trend2000)
+      }
+    }
+  }
+  
+  return(trend2000)
+}
