@@ -23,12 +23,15 @@ poppass <- read_excel("input/Cities pop.xlsx")
 reg.pop <- read_excel("input/Region pop.xlsx")
 expf <- read.csv("input/exceptions file.csv", check.names = F, stringsAsFactors = F, sep=";")
 productnames <- read.csv("input/ProductNames.csv", check.names = F, stringsAsFactors = F, sep=";")
-MO.pop <- read.csv("input/SUMs. Morocco .csv", check.names = F, stringsAsFactors = F, sep=";")
+MO.pop <- read.csv("input/SUMs. Morocco.csv", check.names = F, stringsAsFactors = F, sep=",")
 
 # ismetam miestus, kuriu total neturim ir sali MY, nes nera nei vieno skaiciaus, eilutes tuscios
 veh <- veh[!(veh$RegionCode %in% c("CA26 approx.", "CA27 approx.", "IS04 approx.", "Rxx1", 
                                    "Rxx2", "TH06 approx.", "TH10 approx.", "TH11")) &
              veh$CountryCode!="MY",]
+
+#su US neaisku, kas yra, kolkas ismetam 2000 US
+veh <- veh[!(veh$CountryCode=="US"),]
 
 pop <- pop[pop$`Item code` %in% c(1554),]
 # Data Manipulation -------------------------------------------------------
@@ -143,6 +146,14 @@ for (reg in unique(reg.veh$RegionCode)){
             s.reg.pop <- reg.pop[reg.pop$RegionCode %in% c(reg), paste0("Y", 2000:2016)]
             s.city.pop <- poppass[poppass$CityCode %in% c(j) & poppass$ProductID==1554, 
                                   paste0("Y", 2000:2016)]
+            
+            # kadangi "MO" orginalus duomenys tik iki 2005 metu, reikia ilgesnes total.forecast eilutes,
+            # del to naudojam pop nuo 2000 iki 2016, o ne pop15_64 nuo 2005 iki 2016.
+            if (substr(j, 1, 2)=="MO"){
+              
+              s.city.pop <- MO.pop[MO.pop$`Metropolitan SUM` %in% j, as.character(2000:2016)]
+            }
+            
             s.new <- s.reg.veh[s.reg.veh$ProductID==id,]
             s.new[,as.character(2000:2016)] <- (s.city.pop/s.reg.pop)*s.new[,as.character(2000:2016)]
             s.new$RegionCode <- j
@@ -196,9 +207,6 @@ veh1 <- missing.ind(veh1, expf)
 
 veh1 <- veh1[nchar(veh1$RegionCode)==4,]
 
-#su US neaisku kas yra kolkas ismetam 2000 US
-veh1 <- veh1[!(veh1$ProductID==2000 & veh1$CountryCode=="US"),]
-
 
 # Forecasts ---------------------------------------------------------------
 
@@ -240,6 +248,14 @@ total.forecast <- NULL
 for (cc in unique(totals$RegionCode)){
   
   s.pop <- poppass15_64[poppass15_64$CityCode==cc, paste0("Y", 2000:2016)]*1000
+  
+  # kadangi "MO" orginalus duomenys tik iki 2005 metu, reikia ilgesnes total.forecast eilutes,
+  # del to naudojam pop nuo 2000 iki 2016, o ne pop15_64 nuo 2005 iki 2016.
+  if (substr(cc, 1, 2)=="MO"){
+    
+    s.pop <- MO.pop[MO.pop$`Metropolitan SUM` %in% cc, as.character(2000:2016)]*1000
+  }
+  
   st <- totals[totals$RegionCode==cc,]
   
   if (length(st[, year][!is.na(st[, year])])==1){
@@ -268,8 +284,8 @@ for (cc in unique(totals$RegionCode)){
 
 # 5) Forecasting shares 2666, 2667, 2668 from total with MASpline ---------
 
-veh1 <- veh1[veh1$CountryCode!="MO" & veh1$RegionCode!="IN21",]
-total.forecast <- total.forecast[total.forecast$CountryCode!="MO" & total.forecast$RegionCode!="IN21",]
+veh1 <- veh1[veh1$RegionCode!="IN21",]
+total.forecast <- total.forecast[total.forecast$RegionCode!="IN21",]
 
 data.out.proc <- NULL
 data.out.num <- NULL
@@ -483,11 +499,16 @@ data.out.proc <- data.out.proc[, c("CityCodeID", "CityCode", "CountryCode", "Cit
 
 data.out.num <- data.out.num[, c("RegionCode", "CountryCode", "ProductID", "Unit", as.character(2000:2016))]
 data.out.num <- rename(data.out.num, c(RegionCode="CityCode"))
-data.out.num$Unit <- "%"
+data.out.num$Unit <- "'000"
 data.out.num <- merge(data.out.num, city.codes[, c("CityCode", "CountryName", "CityName", "CityCodeID")], by=c("CityCode"))
 data.out.num <- merge(data.out.num, productnames, by=c("ProductID"))
 data.out.num <- data.out.num[, c("CityCodeID", "CityCode", "CountryCode", "CityName", "CountryName",
                                    "ProductID", "ProductName", "Unit", as.character(2000:2016))]
+
+for (index in 1:nrow(data.out.num)){
+  
+  data.out.num[index, as.character(2000:2016)] <- data.out.num[index, as.character(2000:2016)]/1000
+}
 
 
 # saving data
@@ -500,8 +521,7 @@ write.csv(data.out.num,
 # 7) Graphs ---------------------------------------------------------------
 
 
-
-pdf(paste0("plots/Number of vehicles_", Sys.Date(),".pdf"),width=16 * 0.8,height=13 * 0.7)
+pdf(paste0("plots/Number of vehicles_", Sys.Date(),".pdf"),width=16.5 * 0.8,height=13 * 0.7)
 
 print(titlepage(title = "Number of Vehicles", sub = "Cities", date = Sys.Date(), author = "JP", size=15))
 
@@ -524,18 +544,20 @@ for (cn in unique(data.out.num$CountryName)){
     
     index <- 1
     
-    plot(1, type="n", xlab="", ylab="", xlim=c(2004.5, 2016.5), ylim=c(0, max(frame1[,year], na.rm = T)),
-         main=pr)
+    par(mar = c(5,4,4,2))
+    
+    plot(1, type="n", xlab="", ylab="Number '000", xlim=c(2004.5, 2016.5), ylim=c(0, max(frame1[,year], na.rm = T)),
+         main=pr, mgp=c(2.5,1,0))
     
     for (i in unique(frame1$CityCode)){
       
       cityf <- frame1[frame1$CityCode==i,]
       cityr <- rawd[rawd$RegionCode==i,]
+      cityr[, as.character(2000:2016)] <- cityr[, as.character(2000:2016)]/1000 
       lg <- length(unique(frame1$CityCode))
       
       matplot(t(cityf[,year]), x=(2005:2016), main=pr, type=c("l"), 
-              col=emi_pal()(lg)[index], ylab="Number",
-              xlab="Year", lty=1, xlim=c(2004.5, 2016.5), pch=1, add=T)
+              col=emi_pal()(lg)[index], lty=1, xlim=c(2004.5, 2016.5), pch=1, add=T)
       text(x=c(2004.5, 2016.5), y= c(cityf[,"2005"], cityf[,"2016"]),  cityf$CityName, cex=0.7,
            col=emi_pal()(lg)[index])
       grid()
@@ -555,9 +577,9 @@ for (cn in unique(data.out.num$CountryName)){
   title(main=cn, outer=TRUE, cex.main=2)
   
   # for (city in unique(sn$CityCode)){
-  #   
+  # 
   #   cityname <- city.codes[city.codes$CityCode==city,]$CityName
-  #   
+  # 
   #   s.city <- sp[sp$CityCode==city,]
   #   s.city <- s.city[order(s.city$ProductID),]
   #   s.city <- s.city[,c("ProductID", year)]
@@ -565,19 +587,19 @@ for (cn in unique(data.out.num$CountryName)){
   #   s.city <- dcast(s.city, variable~ProductID, value.var = "value")
   #   row.names(s.city) <- s.city$variable
   #   s.city$variable <- NULL
-  #   
+  # 
   #   sraw <- veh1[veh1$RegionCode==city & veh1$ProductID %in% c(2666, 2667, 2668),]
-  #   
+  # 
   #   if (nrow(sraw)==0){
-  #     
+  # 
   #     sraw <- veh1[veh1$RegionCode==city & veh1$ProductID %in% c(2001, 2002, 2003),]
-  #     sraw[,as.character(2000:2016)] <- apply(sraw[,as.character(2000:2016)], 2, function(x){x/100})
+  #     sraw[,as.character(2005:2016)] <- apply(sraw[,as.character(2005:2016)], 2, function(x){x/100})
   #     sraw[sraw$ProductID==2001,]$ProductID <- 2666
   #     sraw[sraw$ProductID==2002,]$ProductID <- 2667
   #     sraw[sraw$ProductID==2003,]$ProductID <- 2668
   #   }
-  #   
-  #   sraw[,as.character(2000:2016)] <- apply(sraw[,as.character(2000:2016)], 2, function(x){x/sum(x)})
+  # 
+  #   sraw[,as.character(2005:2016)] <- apply(sraw[,as.character(2005:2016)], 2, function(x){x/sum(x)})
   #   sraw <- sraw[order(sraw$ProductID),]
   #   sraw <- sraw[,c("ProductID", year)]
   #   sraw <- melt(sraw, id=c("ProductID"))
@@ -586,19 +608,23 @@ for (cn in unique(data.out.num$CountryName)){
   #   sraw$variable <- NULL
   # 
   #   par(mfrow=c(1,1), oma=c(0,0,0,0))
+  # 
+  #   matplotf(s.city, main=paste0(city, " - ", cityname), legend = F,
+  #            text = T, col=emi_pal()(3), lwd = 2, stx = 2005, abline=c(0,1))
   #   
-  #   matplotf(s.city, main=paste0(city, " - ", cityname), legend = F, 
-  #            text = T, col=emi_pal()(3), lwd = 2, stx = 2000, abline=c(0,1))
-  #   matplotf(sraw, legend = F, col=emi_pal()(3), point=T, stx = 2000, lwd=2, add=T)
-  #   mtext("2666 - Passenger cars in use", side = 3, col = emi_pal()(3)[1], cex=0.7, 
-  #         line = 1, adj=0.1, at=2010)
-  #   mtext("2667 - Commercial Vehicles in Use", side = 3, , col = emi_pal()(3)[2], 
-  #         cex=0.7, line = 0.5, adj=0.1, at=2010)
-  #   mtext("2668 - Motorcycles and Mopeds in Use", side = 3, , col = emi_pal()(3)[3], 
-  #         cex=0.7, line = 0, adj=0.1, at=2010)
-  #   
+  #   if (!all(is.na(sraw$`2666`) & is.na(sraw$`2667`) & is.na(sraw$`2668`))){
+  #     
+  #     matplotf(sraw, legend = F, col=emi_pal()(3), point=T, stx = 2005, lwd=2, add=T)
+  #   }
+  #   mtext("2666 - Passenger cars in use", side = 3, col = emi_pal()(3)[1], cex=0.7,
+  #         line = 1, adj=0.1, at=2015)
+  #   mtext("2667 - Commercial Vehicles in Use", side = 3, col = emi_pal()(3)[2],
+  #         cex=0.7, line = 0.5, adj=0.1, at=2015)
+  #   mtext("2668 - Motorcycles and Mopeds in Use", side = 3, col = emi_pal()(3)[3],
+  #         cex=0.7, line = 0, adj=0.1, at=2015)
+  # 
   #   grid()
-  #   
+  # 
   # }
   
 }
