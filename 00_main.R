@@ -24,6 +24,7 @@ reg.pop <- read_excel("input/Region pop.xlsx")
 expf <- read.csv("input/exceptions file.csv", check.names = F, stringsAsFactors = F, sep=";")
 productnames <- read.csv("input/ProductNames.csv", check.names = F, stringsAsFactors = F, sep=";")
 MO.pop <- read.csv("input/SUMs. Morocco.csv", check.names = F, stringsAsFactors = F, sep=",")
+poss.of.cars <- read_excel("input/Additional indicators.xlsx")
 
 # ismetam miestus, kuriu total neturim ir sali MY, nes nera nei vieno skaiciaus, eilutes tuscios
 veh <- veh[!(veh$RegionCode %in% c("CA26 approx.", "CA27 approx.", "IS04 approx.", "Rxx1", 
@@ -36,43 +37,13 @@ veh <- veh[!(veh$CountryCode=="US"),]
 pop <- pop[pop$`Item code` %in% c(1554),]
 # Data Manipulation -------------------------------------------------------
 
+
 # 1) Eliminating all approx, _1, _2 by using pop approx, _1, _2 -----------
 
 
 ####firstly eliminate approx
-app <- veh[grep("approx", veh$RegionCode),]$RegionCode
-app1 <- app
-
-# app <- setdiff(app, c("EC01 approx.", "EC02 approx."))
-
-after.approx <- NULL
-
-for (c.app in app){
-  
-  cc <- gsub(" .*", "", c.app)
-  s.pop <- pop[pop$`Region code` %in% c(cc),as.character(c(2000:2016))]/
-    pop[pop$`Region code` %in% c(c.app),as.character(c(2000:2016))]
-  
-  if (length(s.pop[!is.na(s.pop)])==1){
-    
-    s.pop[as.character(2000:2016)] <- s.pop[!is.na(s.pop)]
-    s.pop <- as.numeric(s.pop)
-  }else{
-    
-    s.pop <- MASplineVector(s.pop, k=0.6)
-  }
-  
-  s.veh <- veh[veh$RegionCode %in% c(c.app) & (veh$ProductID %in% c(2668,2667,2666,2000)),]
-  
-  for (j in 1:nrow(s.veh)){
-    
-   s.new <- s.veh[j,]
-   s.new$RegionCode <- cc
-   s.new[,as.character(2000:2016)] <- as.numeric(s.new[,as.character(2000:2016)])*s.pop
-   
-   after.approx <- rbind(s.new, after.approx)
-  }
-}
+app1 <- veh[grep("approx", veh$RegionCode),]$RegionCode
+after.approx <- EliminateApprox(veh, pop)
 
 # nenaudosim "PH01_1", "PH01_2 approx.", "PH01_3 approx." su indicatoriais 2001, 2002, 2003, 
 # nes per daug komplikuota
@@ -81,131 +52,43 @@ veh123 <- veh[(veh$ProductID %in% c(2001, 2002, 2003)) &
 veh <- veh[(!(veh$RegionCode %in% app1)) & (veh$ProductID %in% c(2668,2667,2666,2000)),]
 veh <- rbind(after.approx, veh123, veh)
 
-#####then eliminate _1, _2, _3, _4, _5, _6, _7, _8, _9, _10
-
-h1 <- veh[grep("_1", veh$RegionCode),]$RegionCode 
-h2 <- veh[grep("_2", veh$RegionCode),]$RegionCode
-h3 <- veh[grep("_3", veh$RegionCode),]$RegionCode
-h4 <- veh[grep("_4", veh$RegionCode),]$RegionCode
-h5 <- veh[grep("_5", veh$RegionCode),]$RegionCode
-h6 <- veh[grep("_6", veh$RegionCode),]$RegionCode
-h7 <- veh[grep("_7", veh$RegionCode),]$RegionCode
-h8 <- veh[grep("_8", veh$RegionCode),]$RegionCode
-h9 <- veh[grep("_9", veh$RegionCode),]$RegionCode
-
-all.pieces <- c(h1, h2, h3, h4, h5, h6, h7, h8, h9)
-
-d.pieces <- veh[veh$RegionCode %in% all.pieces,]
-
-all.pieces1 <- unique(gsub("_.*", "", all.pieces))
-
-d.eliminated.pieces <- NULL
-
-for (cc in all.pieces1){
-  
-  ss <- d.pieces[grep(cc, d.pieces$RegionCode),]
-  
-  for (i in unique(ss$ProductID)){
-    
-    suma <- apply(ss[ss$ProductID==i, as.character(2000:2016)],2,sum)
-    oth <- unique(ss[ss$ProductID==i, c("Region/CityName", "CountryName", "CountryCode", 
-                                 "ProductID", "ProductName", "Unit")])
-    RegionCode=c(cc)
-    s.new <- cbind(RegionCode,as.data.frame(oth), t(as.data.frame(suma)))
-    d.eliminated.pieces <- rbind(s.new, d.eliminated.pieces)
-  }
-}
-
-veh <- veh[!(veh$RegionCode %in% all.pieces),]
-veh <- rbind(veh, d.eliminated.pieces)
+####then eliminate _1, _2, _3, _4, _5, _6, _7, _8, _9, _10
+veh <- Eliminate12(veh)
 
 
 # 2) Making cities data of region data by using population ----------------
 
-reg.veh <- veh[substr(veh$RegionCode, 1, 2) %in% c("R0", "R1", "R2", "R3", "R4", 
-                                                   "R5", "R6", "R7", "R8", "R9"),]
-afterreg <- NULL
-
-for (reg in unique(reg.veh$RegionCode)){
-  
-  cc <- as.character(city.codes[city.codes$RegionCode==reg,]$CityCode)
-  
-  for (j in cc){
-  
-    if (length(j)!=0){
-      
-      if (!(j %in% veh$RegionCode)){
-        
-        print(j)
-        s.reg.veh <- reg.veh[reg.veh$RegionCode %in% c(reg),]
-        
-        for (id in s.reg.veh$ProductID){
-          
-          if (id %in% c(2668, 2667, 2666, 2000)){
-          
-            s.reg.pop <- reg.pop[reg.pop$RegionCode %in% c(reg), paste0("Y", 2000:2016)]
-            s.city.pop <- poppass[poppass$CityCode %in% c(j) & poppass$ProductID==1554, 
-                                  paste0("Y", 2000:2016)]
-            
-            # kadangi "MO" orginalus duomenys tik iki 2005 metu, reikia ilgesnes total.forecast eilutes,
-            # del to naudojam pop nuo 2000 iki 2016, o ne pop15_64 nuo 2005 iki 2016.
-            if (substr(j, 1, 2)=="MO"){
-              
-              s.city.pop <- MO.pop[MO.pop$`Metropolitan SUM` %in% j, as.character(2000:2016)]
-            }
-            
-            s.new <- s.reg.veh[s.reg.veh$ProductID==id,]
-            s.new[,as.character(2000:2016)] <- (s.city.pop/s.reg.pop)*s.new[,as.character(2000:2016)]
-            s.new$RegionCode <- j
-            
-            afterreg <- rbind(afterreg, s.new)
-          }else{
-            
-            s.new <- s.reg.veh[s.reg.veh$ProductID==id,]
-            s.new$RegionCode <- j
-            
-            afterreg <- rbind(afterreg, s.new)
-            
-          }
-        }
-      }
-    }
-  }
-}
-
-veh <- setdiff.data.frame(veh, reg.veh)
-veh <- rbind(veh, afterreg)
+veh <- CityVehMadeOfRegionVeh(veh, reg.pop, poppass)
 
 veh1 <- veh
-
-
+veh <- veh1
 
 # 3) Eliminating id codes 2000, 2001, 2002, 2003; -------------------------
 
 # calculating 2666, 2667, 2668 from 2000, 2001, 2002, 2003; all methods we used are discribed
 # in exceptions file.csv
 
-#has only indicator 2000, we can't do anything with this for now, so any forecast for the city is going to be made
+#has only indicator 2000, we can't do anything with this for now, so no forecast for the city is going to be made
 #only2000
 
-veh1 <- veh1[!(veh1$RegionCode %in% (expf[expf$exp=="only2000",]$CityCode)),]
+veh <- veh[!(veh$RegionCode %in% (expf[expf$exp=="only2000",]$CityCode)),]
 
 #has only indicator 2000, but the country has indicators 2666, 2667, 2668; so the structure of the country is going to be adapted to the city
 #country678
 
 # Fukcija, kuri suranda tokius atvejus
-# country678 <- country678.cases.founder(veh1, city.codes)
+# country678 <- country678.cases.founder(veh, city.codes)
 
-veh1 <- country.ind.2000(veh1, expf)
+veh <- country.ind.2000(veh, expf)
 
 #indicator 2668 missing, it is going to be calculated from indicators 2000, 2667, 2666 (2668=2000-2667-2666)
 #miss.ind
 
-veh1 <- missing.ind(veh1, expf)
+veh <- missing.ind(veh, expf)
 
 #countries data is no more necessary
 
-veh1 <- veh1[nchar(veh1$RegionCode)==4,]
+veh <- veh[nchar(veh$RegionCode)==4,]
 
 
 # Forecasts ---------------------------------------------------------------
@@ -213,28 +96,32 @@ veh1 <- veh1[nchar(veh1$RegionCode)==4,]
 
 # 4) totals forecast ------------------------------------------------------
 
+
 # in cases make678 and trend2000 (exceptions file) indicator 2000 is going to be the total 
 # of the vehicles
 
 # Funkcija surasti trend2000 atvejams
-# trend2000 <- trend2000.cases.finder(veh1)
+# trend2000 <- trend2000.cases.finder(veh)
 
-# should be TRUE if not something wrong
-all(veh1[veh1$ProductID==2000,]$RegionCode %in% c(expf[expf$exp %in% c("make678", "trend2000"),]$CityCode))
+# should be TRUE if not - something wrong
+all(veh[veh$ProductID==2000,]$RegionCode %in% c(expf[expf$exp %in% c("make678", "trend2000"),]$CityCode))
 ########################
 
-totals1 <- veh1[veh1$RegionCode %in% c(expf[expf$exp %in% c("make678", "trend2000"),]$CityCode) &
-                  veh1$ProductID==2000,]
+#totals1 - taking indicator 2000 as total
+totals1 <- veh[veh$RegionCode %in% c(expf[expf$exp %in% c("make678", "trend2000"),]$CityCode) &
+                  veh$ProductID==2000,]
 totals1 <- totals1[c("RegionCode", "CountryCode", as.numeric(2000:2016))]
 
-totals2 <- veh1[veh1$ProductID %in% c(2666,2667,2668) & 
-                  !(veh1$RegionCode %in% c(expf[expf$exp %in% c("make678", "trend2000"),]$CityCode)),]
+#totals2=sum(2666, 2667, 2668)
+totals2 <- veh[veh$ProductID %in% c(2666,2667,2668) & 
+                  !(veh$RegionCode %in% c(expf[expf$exp %in% c("make678", "trend2000"),]$CityCode)),]
 totals2 <- totals2[c("RegionCode", "CountryCode", "ProductID", as.numeric(2000:2016))]
 
 totals2 <- melt(totals2, id=c("RegionCode", "CountryCode", "ProductID"))
 totals2 <- ddply(totals2, .(RegionCode, CountryCode, variable), summarize,  total=sum(value))
 totals2 <- dcast(totals2, RegionCode+CountryCode~variable, value.var = c("total"))
 
+#connecting both total1 and total2
 totals <- rbind(totals1, totals2)
 
 #forecasting (city.totals.vehicle/city.pop15-64) with MASpline 
@@ -284,7 +171,7 @@ for (cc in unique(totals$RegionCode)){
 
 # 5) Forecasting shares 2666, 2667, 2668 from total with MASpline ---------
 
-veh1 <- veh1[veh1$RegionCode!="IN21",]
+veh <- veh[veh$RegionCode!="IN21",]
 total.forecast <- total.forecast[total.forecast$RegionCode!="IN21",]
 
 data.out.proc <- NULL
@@ -292,7 +179,7 @@ data.out.num <- NULL
 
 for (cc in unique(total.forecast$RegionCode)){
 
-  s <- veh1[veh1$RegionCode==cc,]
+  s <- veh[veh$RegionCode==cc,]
   st <- total.forecast[total.forecast$RegionCode==cc,]
   
   if (cc %in% expf[expf$exp=="trend2000",]$CityCode){
@@ -511,6 +398,46 @@ for (index in 1:nrow(data.out.num)){
 }
 
 
+#### cheking if data matches with possessions of cars
+
+bad.cities <- NULL
+for (city in data.out.num[data.out.num$ProductID==2666,]$CityCode){
+  
+  s.poss <- poss.of.cars[poss.of.cars$ProductID==2505 & poss.of.cars$CityCode==city, 
+                         c("CityCode", paste0("Y", 2005:2030))]
+  s.hh <- poss.of.cars[poss.of.cars$ProductID==2485 & poss.of.cars$CityCode==city, 
+                       c("CityCode", paste0("Y", 2005:2030))]
+  s.poss <- s.poss[, paste0("Y", 2005:2030)]*s.hh[, paste0("Y", 2005:2030)]/100
+  
+  cars <- data.out.num[data.out.num$ProductID==2666 & data.out.num$CityCode==city,]
+  
+  commercial.veh <- data.out.num[data.out.num$ProductID==2667 & data.out.num$CityCode==city,]
+  
+  allcars <- cars
+  
+  allcars[, as.character(2000:2016)] <- cars[, as.character(2000:2016)]+commercial.veh[, as.character(2000:2016)]
+    
+  if (!(any(allcars[, as.character(2005:2016)]>s.poss[, paste0("Y", 2005:2016)]))){
+    
+    bad.cities <- c(bad.cities, city)
+  }
+}
+
+#correcting bad things
+
+year2 <- as.character(2005:2016)
+for (city in expf[expf$exp=="UsePossCars",]$CityCode){
+  
+  s.poss <- poss.of.cars[poss.of.cars$ProductID==2505 & poss.of.cars$CityCode==city, 
+                         c("CityCode", paste0("Y", 2005:2030))]
+  s.hh <- poss.of.cars[poss.of.cars$ProductID==2485 & poss.of.cars$CityCode==city, 
+                       c("CityCode", paste0("Y", 2005:2030))]
+  s.poss <- s.poss[, paste0("Y", 2005:2030)]*s.hh[, paste0("Y", 2005:2030)]/100
+  
+  data.out.num[data.out.num$CityCode==city & data.out.num$ProductID==2666,year2] <- 
+    s.poss[,paste0("Y",year2)]-data.out.num[data.out.num$CityCode==city & data.out.num$ProductID==2667,year2]
+}
+
 # saving data
 write.csv(data.out.proc, 
           paste0("output/Number of Vechiles final output proc_",Sys.Date(), ".csv"), row.names=F)
@@ -520,114 +447,7 @@ write.csv(data.out.num,
 
 # 7) Graphs ---------------------------------------------------------------
 
+GraphVehiclesExtended(veh, data.out.num, data.out.proc)
+GraphVehicles(veh, data.out.num)
 
-pdf(paste0("plots/Number of vehicles_", Sys.Date(),".pdf"),width=16.5 * 0.8,height=13 * 0.7)
-
-print(titlepage(title = "Number of Vehicles", sub = "Cities", date = Sys.Date(), author = "JP", size=15))
-
-year <- as.character(2005:2016)
-for (cn in unique(data.out.num$CountryName)){
-  
-  sn <- data.out.num[data.out.num$CountryName==cn,]
-  sn <- sn[order(sn$CityCode),]
-  sp <- data.out.proc[data.out.proc$CountryName==cn,]
-  
-  par(mfrow=c(2,2), oma=c(0,0,2,0))
-  
-  for (pr in unique(sn$ProductName)){
-    
-    frame1 <- sn[sn$ProductName==pr,c("CityName", "CityCode", year)]
-    
-    pr.id <- unique(sn[sn$ProductName==pr,]$ProductID) 
-    
-    rawd <- veh1[veh1$CountryCode==unique(sn$CountryCode) & veh1$ProductID==pr.id,]
-    
-    index <- 1
-    
-    par(mar = c(5,4,4,2))
-    
-    plot(1, type="n", xlab="", ylab="Number '000", xlim=c(2004.5, 2016.5), ylim=c(0, max(frame1[,year], na.rm = T)),
-         main=pr, mgp=c(2.5,1,0))
-    
-    for (i in unique(frame1$CityCode)){
-      
-      cityf <- frame1[frame1$CityCode==i,]
-      cityr <- rawd[rawd$RegionCode==i,]
-      cityr[, as.character(2000:2016)] <- cityr[, as.character(2000:2016)]/1000 
-      lg <- length(unique(frame1$CityCode))
-      
-      matplot(t(cityf[,year]), x=(2005:2016), main=pr, type=c("l"), 
-              col=emi_pal()(lg)[index], lty=1, xlim=c(2004.5, 2016.5), pch=1, add=T)
-      text(x=c(2004.5, 2016.5), y= c(cityf[,"2005"], cityf[,"2016"]),  cityf$CityName, cex=0.7,
-           col=emi_pal()(lg)[index])
-      grid()
-      
-      if (nrow(cityr)==1){
-      
-        matplot(t(cityr[,year]), x=(2005:2016), type=c("p"), 
-                col=emi_pal()(lg)[index], xlim=c(2004.5, 2016.5), add=T, pch=16)
-        
-      }
-      
-      index <- index+1
-    }
-    
-  }
-  
-  title(main=cn, outer=TRUE, cex.main=2)
-  
-  # for (city in unique(sn$CityCode)){
-  # 
-  #   cityname <- city.codes[city.codes$CityCode==city,]$CityName
-  # 
-  #   s.city <- sp[sp$CityCode==city,]
-  #   s.city <- s.city[order(s.city$ProductID),]
-  #   s.city <- s.city[,c("ProductID", year)]
-  #   s.city <- melt(s.city, id=c("ProductID"))
-  #   s.city <- dcast(s.city, variable~ProductID, value.var = "value")
-  #   row.names(s.city) <- s.city$variable
-  #   s.city$variable <- NULL
-  # 
-  #   sraw <- veh1[veh1$RegionCode==city & veh1$ProductID %in% c(2666, 2667, 2668),]
-  # 
-  #   if (nrow(sraw)==0){
-  # 
-  #     sraw <- veh1[veh1$RegionCode==city & veh1$ProductID %in% c(2001, 2002, 2003),]
-  #     sraw[,as.character(2005:2016)] <- apply(sraw[,as.character(2005:2016)], 2, function(x){x/100})
-  #     sraw[sraw$ProductID==2001,]$ProductID <- 2666
-  #     sraw[sraw$ProductID==2002,]$ProductID <- 2667
-  #     sraw[sraw$ProductID==2003,]$ProductID <- 2668
-  #   }
-  # 
-  #   sraw[,as.character(2005:2016)] <- apply(sraw[,as.character(2005:2016)], 2, function(x){x/sum(x)})
-  #   sraw <- sraw[order(sraw$ProductID),]
-  #   sraw <- sraw[,c("ProductID", year)]
-  #   sraw <- melt(sraw, id=c("ProductID"))
-  #   sraw <- dcast(sraw, variable~ProductID, value.var = "value")
-  #   row.names(sraw) <- sraw$variable
-  #   sraw$variable <- NULL
-  # 
-  #   par(mfrow=c(1,1), oma=c(0,0,0,0))
-  # 
-  #   matplotf(s.city, main=paste0(city, " - ", cityname), legend = F,
-  #            text = T, col=emi_pal()(3), lwd = 2, stx = 2005, abline=c(0,1))
-  #   
-  #   if (!all(is.na(sraw$`2666`) & is.na(sraw$`2667`) & is.na(sraw$`2668`))){
-  #     
-  #     matplotf(sraw, legend = F, col=emi_pal()(3), point=T, stx = 2005, lwd=2, add=T)
-  #   }
-  #   mtext("2666 - Passenger cars in use", side = 3, col = emi_pal()(3)[1], cex=0.7,
-  #         line = 1, adj=0.1, at=2015)
-  #   mtext("2667 - Commercial Vehicles in Use", side = 3, col = emi_pal()(3)[2],
-  #         cex=0.7, line = 0.5, adj=0.1, at=2015)
-  #   mtext("2668 - Motorcycles and Mopeds in Use", side = 3, col = emi_pal()(3)[3],
-  #         cex=0.7, line = 0, adj=0.1, at=2015)
-  # 
-  #   grid()
-  # 
-  # }
-  
-}
-
-dev.off()
 
