@@ -1,0 +1,52 @@
+RegionName,RegionCode,PassportCode
+Alaska,R815,US1A
+Alabama,R814,US1B
+Arkansas,R817,US1C
+Arizona,R816,US1D
+California,R818,US1E
+Colorado,R819,US1F
+Connecticut,R820,US1G
+Delaware,R821,US1H
+Florida,R823,US1I
+Georgia,R824,US1J
+Hawaii,R825,US1K
+Iowa,R829,US1L
+Idaho,R826,US1M
+Illinois,R827,US1N
+Indiana,R828,US1O
+Kansas,R830,US1P
+Kentucky,R831,US1Q
+Louisiana,R832,US1R
+Massachusetts,R835,US1S
+Maryland,R834,US1T
+Maine,R833,US1U
+Michigan,R836,US1V
+Minnesota,R837,US1W
+Missouri,R839,US1X
+Mississippi,R838,US1Y
+Montana,R840,US1Z
+North Carolina,R847,US2A
+North Dakota,R848,US2B
+Nebraska,R841,US2C
+New Hampshire,R843,US2D
+New Jersey,R844,US2E
+New Mexico,R845,US2F
+Nevada,R842,US2G
+New York,R846,US2H
+Ohio,R849,US2I
+Oklahoma,R850,US2J
+Oregon,R851,US2K
+Pennsylvania,R852,US2L
+Rhode Island,R853,US2M
+South Carolina,R854,US2N
+South Dakota,R855,US2O
+Tennessee,R856,US2P
+Texas,R857,US2Q
+Utah,R858,US2R
+Virginia,R860,US2S
+Vermont,R859,US2T
+Washington,R861,US2U
+Wisconsin,R863,US2V
+West Virginia,R862,US2W
+Wyoming,R864,US2X
+District of Columbia,R822,USDC
