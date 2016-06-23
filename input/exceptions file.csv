@@ -66,3 +66,6 @@ PH;PH08;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cov
 PH;PH09;connect;"indicators 2668, 2666, 2667 and indicators 2001, 2002, 2003 cover different years; so we need to connect them"
 IR;IR04;changek;total forecast drops below 0, so we need to change k parameter
 IR;IR07;changek;total forecast drops below 0, so we need to change k parameter
+JO;JO10;UsePossCars;"sum of indicators 2666 and 2667 does match Possession of Cars in the City; so we are using Possession of Cars instead"
+PH;PH09;UsePossCars;"sum of indicators 2666 and 2667 does match Possession of Cars in the City; so we are using Possession of Cars instead"
+RU;RU22;UsePossCars;"sum of indicators 2666 and 2667 does match Possession of Cars in the City; so we are using Possession of Cars instead"
