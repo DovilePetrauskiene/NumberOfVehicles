@@ -13,6 +13,7 @@ library("ggplot2")
 library("readxl")
 
 source("00_functions.R")
+source("standardGraphs.R")
 load("EMI base.RData")
 
 # Input -------------------------------------------------------------------
@@ -25,6 +26,8 @@ expf <- read.csv("input/exceptions file.csv", check.names = F, stringsAsFactors 
 productnames <- read.csv("input/ProductNames.csv", check.names = F, stringsAsFactors = F, sep=";")
 MO.pop <- read.csv("input/SUMs. Morocco.csv", check.names = F, stringsAsFactors = F, sep=",")
 poss.of.cars <- read_excel("input/Additional indicators.xlsx")
+us.codes <- read.csv("input/USA region codes.csv", check.names = F, stringsAsFactors = F, sep=",")
+old.data <- read.csv("input/Vehicles passport 2016-06-10.csv", check.names = F, stringsAsFactors = F, sep=",")
 
 # ismetam miestus, kuriu total neturim ir sali MY, nes nera nei vieno skaiciaus, eilutes tuscios
 veh <- veh[!(veh$RegionCode %in% c("CA26 approx.", "CA27 approx.", "IS04 approx.", "Rxx1", 
@@ -32,9 +35,20 @@ veh <- veh[!(veh$RegionCode %in% c("CA26 approx.", "CA27 approx.", "IS04 approx.
              veh$CountryCode!="MY",]
 
 #su US neaisku, kas yra, kolkas ismetam 2000 US
-veh <- veh[!(veh$CountryCode=="US"),]
+veh <- veh[!(veh$CountryCode=="US" & veh$ProductID==2000),]
 
 pop <- pop[pop$`Item code` %in% c(1554),]
+
+#reg.pop sutvarkom US kodus
+us.reg <- reg.pop[reg.pop$CountryCode %in% "US",]
+us.reg <- rename(us.reg, c(RegionCode="PassportCode"))
+us.reg <- merge(us.reg, us.codes[, c("PassportCode", "RegionCode")], by=c("PassportCode"))
+us.reg$PassportCode <- NULL
+
+reg.pop <- reg.pop[!(reg.pop$CountryCode %in% "US"),]
+reg.pop <- rbind(reg.pop, us.reg)
+
+
 # Data Manipulation -------------------------------------------------------
 
 
@@ -415,7 +429,10 @@ for (city in data.out.num[data.out.num$ProductID==2666,]$CityCode){
   
   allcars <- cars
   
-  allcars[, as.character(2000:2016)] <- cars[, as.character(2000:2016)]+commercial.veh[, as.character(2000:2016)]
+  if (nrow(commercial.veh)!=0){
+  
+    allcars[, as.character(2000:2016)] <- cars[, as.character(2000:2016)]+commercial.veh[, as.character(2000:2016)]
+  }
     
   if (!(any(allcars[, as.character(2005:2016)]>s.poss[, paste0("Y", 2005:2016)]))){
     
@@ -426,7 +443,10 @@ for (city in data.out.num[data.out.num$ProductID==2666,]$CityCode){
 #correcting bad things
 
 year2 <- as.character(2005:2016)
-for (city in expf[expf$exp=="UsePossCars",]$CityCode){
+
+cities.to.correct <- intersect(expf[expf$exp=="UsePossCars",]$CityCode, bad.cities)
+
+for (city in cities.to.correct){
   
   s.poss <- poss.of.cars[poss.of.cars$ProductID==2505 & poss.of.cars$CityCode==city, 
                          c("CityCode", paste0("Y", 2005:2030))]
@@ -447,7 +467,66 @@ write.csv(data.out.num,
 
 # 7) Graphs ---------------------------------------------------------------
 
-GraphVehiclesExtended(veh, data.out.num, data.out.proc)
-GraphVehicles(veh, data.out.num)
+# GraphVehiclesExtended(veh, data.out.num, data.out.proc)
+# GraphVehicles(veh, data.out.num)
+
+cities <- unique(c(data.out.num$CityCode, old.data$CityCode))
+
+veh$ProductName <- NULL
+veh <- merge(veh, productnames, by=c("ProductID"))
+
+year <- as.character(2000:2016)
+year2 <- as.character(2005:2016)
+yearY <- paste0("Y", 2005:2016)
 
 
+pdf(paste0("plots/Number of vehicles vs old_", Sys.Date(),".pdf"),width=16.5 * 0.8,height=13 * 0.7)
+
+print(titlepage(title = "Number of Vehicles vs old", sub = "Cities", date = Sys.Date(), author = "JP", size=15))
+
+for (city in sort(cities)){
+  
+  s.est <- subset(data.out.num, CityCode==city)
+  s.old <- subset(old.data, CityCode==city)
+  s.new <- subset(veh, RegionCode==city)
+  s.new <- s.new[s.new$ProductID %in% c(2666,2667,2668),]
+  
+  if (nrow(s.old)!=0){
+    
+    s.old <- melt(s.old[,c("ProductName", yearY)], id=c("ProductName"))
+    s.old$period <- "old"
+  }
+  
+  if (nrow(s.est)!=0){
+    
+    s.est <- melt(s.est[,c("ProductName", year2)], id=c("ProductName"))
+    s.est$period <- "estimate"
+  }
+  
+  if (nrow(s.new)!=0){
+    
+    s.new[, year] <- apply(s.new[, year], 2, function(x){x/1000})
+    s.new <- melt(s.new[,c("ProductName", year2)], id=c("ProductName"))
+    s.new$period <- "new"
+    
+  }
+  
+  # for (pr in unique(s.new$ProductName)){
+  #   
+  #   for (yy in year2){
+  #     
+  #     if (!is.na(s.new[s.new$ProductName==pr & s.new$variable==as.numeric(yy),]$value)){
+  #       
+  #       s.est[s.est$ProductName==pr & s.est$variable==yy,]$period <- "new"
+  #     }
+  #   }
+  # }
+  
+  df <- rbind(s.old, s.est, s.new)
+  
+  df$variable <- gsub("Y", "",df$variable)
+  
+  drawPlot(df, ypav="Number of Vehicles", citycode=city)
+}
+
+dev.off()
