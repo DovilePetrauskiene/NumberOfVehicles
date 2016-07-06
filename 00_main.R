@@ -56,7 +56,7 @@ reg.pop <- rbind(reg.pop, us.reg)
 
 
 ####firstly eliminate approx
-app1 <- veh[grep("approx", veh$RegionCode),]$RegionCode
+app1 <- unique(veh[grep("approx", veh$RegionCode),]$RegionCode)
 after.approx <- EliminateApprox(veh, pop)
 
 # nenaudosim "PH01_1", "PH01_2 approx.", "PH01_3 approx." su indicatoriais 2001, 2002, 2003, 

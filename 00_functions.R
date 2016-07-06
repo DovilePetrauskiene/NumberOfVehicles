@@ -144,7 +144,7 @@ trend2000.cases.finder <- function(veh){
 #Eliminating approx from veh variable
 EliminateApprox <- function(veh, pop){
   
-  app <- veh[grep("approx", veh$RegionCode),]$RegionCode
+  app <- unique(veh[grep("approx", veh$RegionCode),]$RegionCode)
   app1 <- app
   
   after.approx <- NULL
