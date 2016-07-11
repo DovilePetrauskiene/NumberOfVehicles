@@ -18,7 +18,7 @@ load("EMI base.RData")
 
 # Input -------------------------------------------------------------------
 
-veh <- read.csv(file = "input/Research data number of vehicles.csv",check.names = F,stringsAsFactors = F, sep=";")
+veh <- read.csv(file = "input/Research data number of vehicles 07 08.csv",check.names = F,stringsAsFactors = F, sep=";")
 pop <- read.csv(file = "input/Population shares - vehicles.csv", check.names = F, stringsAsFactors = F, sep=";")
 poppass <- read_excel("input/Cities pop.xlsx")
 reg.pop <- read_excel("input/Region pop.xlsx")
@@ -184,9 +184,6 @@ for (cc in unique(totals$RegionCode)){
 
 
 # 5) Forecasting shares 2666, 2667, 2668 from total with MASpline ---------
-
-veh <- veh[veh$RegionCode!="IN21",]
-total.forecast <- total.forecast[total.forecast$RegionCode!="IN21",]
 
 data.out.proc <- NULL
 data.out.num <- NULL
@@ -388,14 +385,13 @@ for (cc in unique(total.forecast$RegionCode)){
 
 # 6) Final corrections and checkings --------------------------------------
 
-
-data.out.proc <- data.out.proc[, c("RegionCode", "CountryCode", "ProductID", "Unit", as.character(2000:2016))]
-data.out.proc <- rename(data.out.proc, c(RegionCode="CityCode"))
-data.out.proc$Unit <- "%"
-data.out.proc <- merge(data.out.proc, city.codes[, c("CityCode", "CountryName", "CityName", "CityCodeID")], by=c("CityCode"))
-data.out.proc <- merge(data.out.proc, productnames, by=c("ProductID"))
-data.out.proc <- data.out.proc[, c("CityCodeID", "CityCode", "CountryCode", "CityName", "CountryName",
-                                   "ProductID", "ProductName", "Unit", as.character(2000:2016))]
+# data.out.proc <- data.out.proc[, c("RegionCode", "CountryCode", "ProductID", "Unit", as.character(2000:2016))]
+# data.out.proc <- rename(data.out.proc, c(RegionCode="CityCode"))
+# data.out.proc$Unit <- "%"
+# data.out.proc <- merge(data.out.proc, city.codes[, c("CityCode", "CountryName", "CityName", "CityCodeID")], by=c("CityCode"))
+# data.out.proc <- merge(data.out.proc, productnames, by=c("ProductID"))
+# data.out.proc <- data.out.proc[, c("CityCodeID", "CityCode", "CountryCode", "CityName", "CountryName",
+#                                    "ProductID", "ProductName", "Unit", as.character(2000:2016))]
 
 
 data.out.num <- data.out.num[, c("RegionCode", "CountryCode", "ProductID", "Unit", as.character(2000:2016))]
@@ -459,8 +455,8 @@ for (city in cities.to.correct){
 }
 
 # saving data
-write.csv(data.out.proc, 
-          paste0("output/Number of Vechiles final output proc_",Sys.Date(), ".csv"), row.names=F)
+# write.csv(data.out.proc, 
+#           paste0("output/Number of Vechiles final output proc_",Sys.Date(), ".csv"), row.names=F)
 write.csv(data.out.num, 
           paste0("output/Number of Vechiles final output_",Sys.Date(),".csv"), row.names=F)
 
